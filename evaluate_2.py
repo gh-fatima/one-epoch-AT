@@ -81,8 +81,6 @@ parser.add_argument('--iter', type=int, default = 20,
 parser.add_argument('--hidden_units', type=int, default = 4096, 
                     help='number of iterations for generating adversarial Examples')
 
-parser.add_argument('--num_class', type=int, default = 10, 
-                    help='number of classes')
 
 
             
@@ -94,6 +92,11 @@ print("Running with test_patches = " + str(args.test_patches) + "model_path = " 
 ## Testing Accuracy ##
 ######################
 test_patches = args.test_patches
+
+if args.data=='cifar10':
+     args.num_class = 10
+else:
+     args.num_class = 100
 
 def compute_accuracy(y_pred, y_true):
     """Compute accuracy by counting correct classification. """
@@ -194,7 +197,10 @@ LL.cuda()
 
 print('###################Train Lucun, Test Lecun Model#############')
 testTransform = ContrastiveLearningViewGenerator(num_patch=args.test_patches, scale_min = args.scale_min, scale_max = args.scale_max, ratio_min = args.ratio_min, ratio_max = args.ratio_max)
-testDataset        = torchvision.datasets.CIFAR100(root='./data/' ,train=False, transform=testTransform, download=True)
+if args.data == 'cifar10':
+    testDataset        = torchvision.datasets.CIFAR10(root='./data/' ,train=False, transform=testTransform, download=True)
+elif args.data == 'cifar100':
+    testDataset        = torchvision.datasets.CIFAR100(root='./data/' ,train=False, transform=testTransform, download=True) 
 
 batchSize = args.bs_patch_test
 testLoader      = torch.utils.data.DataLoader(dataset=testDataset,  batch_size=batchSize, num_workers=4, pin_memory=True, shuffle=True, drop_last=True )
@@ -269,7 +275,6 @@ def testEvalNet_adv(eps):
             labels = labels.to(device)
             delta = pgd_linf_end_lecun(net,LL, X, labels, eps, args.alpha, args.iter)
             _,z_pre =  net(X+delta, is_test=True)
-            print(z_pre.shape)
             z_pre = chunk_avg(z_pre, test_patches)
             z_pre = z_pre.to(device)
             yp = LL(z_pre).to(device)
@@ -298,9 +303,9 @@ def testEvalNet_adv(eps):
     print('Acc_Test =', total_acc_test / len(testLoader.dataset),sep="\t")
     return total_acc_test / len(testLoader.dataset)
 
-testEvalNet_adv(4/255)
-testEvalNet_adv(8/255)
-testEvalNet_adv(16/255)
+# testEvalNet_adv(4/255)
+# testEvalNet_adv(8/255)
+# testEvalNet_adv(16/255)
 # print('Result on clean data =',r)
 # print('###################Train Lecun, Test Normal#############')
 # testTransform = transforms.Compose([
@@ -333,8 +338,10 @@ print('###################Training EvalNet#############')
 # 
 # normalize = transforms.Normalize([0.5,0.5,0.5], [0.5,0.5,0.5])
 trainEvalTransform = transforms.Compose([transforms.ToTensor()])
-
-trainEvalDataset        = torchvision.datasets.CIFAR100(root='./data/' ,train=True, transform=trainEvalTransform, download=True)
+if args.data == 'cifar10':
+    trainEvalDataset        = torchvision.datasets.CIFAR10(root='./data/' ,train=True, transform=trainEvalTransform, download=True)
+elif args.data=='cifar100':
+    trainEvalDataset        = torchvision.datasets.CIFAR100(root='./data/' ,train=True, transform=trainEvalTransform, download=True)
 
 batchSize = args.bs_centralcrop_train
 trainEvalLoader      = torch.utils.data.DataLoader(dataset=trainEvalDataset ,  batch_size=batchSize, num_workers=4, pin_memory=True, shuffle=True, drop_last=True )
@@ -372,7 +379,11 @@ print('###################Train normal, test normal#############')
 
 testTransform = transforms.Compose([
         transforms.ToTensor()])
-testDataset        = torchvision.datasets.CIFAR100(root='./data/' ,train=False, transform=testTransform, download=True)
+
+if args.data == 'cifar10':
+    testDataset        = torchvision.datasets.CIFAR10(root='./data/' ,train=False, transform=testTransform, download=True)
+elif args.data == 'cifar100':
+    testDataset        = torchvision.datasets.CIFAR100(root='./data/' ,train=False, transform=testTransform, download=True)
 
 batchSize = args.bs_centralcrop_test
 

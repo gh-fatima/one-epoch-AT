@@ -32,11 +32,11 @@ parser.add_argument('--patch_sim', type=int, default=200,
                     help='coefficient of cosine similarity (default: 200)')
 parser.add_argument('--tcr', type=int, default=1,
                     help='coefficient of tcr (default: 1)')
-parser.add_argument('--num_patches', type=int, default=100,
+parser.add_argument('--num_patches', type=int, default=160,
                     help='number of patches used in EMP-SSL (default: 100)')
 parser.add_argument('--arch', type=str, default="resnet18-cifar",
                     help='network architecture (default: resnet18-cifar)')
-parser.add_argument('--bs', type=int, default=100,
+parser.add_argument('--bs', type=int, default=50,
                     help='batch size (default: 100)')
 parser.add_argument('--lr', type=float, default=0.3,
                     help='learning rate (default: 0.3)')        
@@ -46,20 +46,20 @@ parser.add_argument('--msg', type=str, default="NONE",
                     help='additional message for description (default: NONE)')     
 parser.add_argument('--dir', type=str, default="EMP-SSL-Training",
                     help='directory name (default: EMP-SSL-Training)')     
-parser.add_argument('--data', type=str, default="cifar10",
+parser.add_argument('--data', type=str, default="cifar100",
                     help='data (default: cifar10)')          
 parser.add_argument('--epoch', type=int, default=30,
                     help='max number of epochs to finish (default: 30)') 
-parser.add_argument('--scale_min', type=float, default=0.08, 
+parser.add_argument('--scale_min', type=float, default=0.25, 
                     help='Minimum scale for resizing')
 
-parser.add_argument('--scale_max', type=float, default=1.0, 
+parser.add_argument('--scale_max', type=float, default=0.25, 
                     help='Maximum scale for resizing')
 
-parser.add_argument('--ratio_min', type=float, default=0.75, 
+parser.add_argument('--ratio_min', type=float, default=1, 
                     help='Minimum aspect ratio')
 
-parser.add_argument('--ratio_max', type=float, default=1.3333333333333333, 
+parser.add_argument('--ratio_max', type=float, default=1, 
                     help='Maximum aspect ratio') 
 
 args = parser.parse_args()
@@ -170,8 +170,8 @@ scheduler = lr_scheduler.CosineAnnealingLR(opt, T_max=num_converge, eta_min=0,la
 # Loss
 contractive_loss = Similarity_Loss()
 criterion = TotalCodingRate(eps=args.eps)
-# PATH ='/home/Fatemeh/One-epoch/EMP-SSL-main/logs/EMP-SSL-Training/patchsim200_numpatch40_bs100_lr0.3_NONE/save_models_adv_wo_Normalization_8_crop_scale_min_0.25_scale_max_1_ratio_min_1_ratio_max_1/24.pt'
-# net.load_state_dict(torch.load(PATH))
+PATH ='/home/Fatemeh/one-epoch-AT/logs/EMP-SSL-Training/patchsim200_numpatch160_bs50_lr0.3_NONE/save_models_adv_wo_Normalization_8_cifar100_v2/14.pt'
+net.load_state_dict(torch.load(PATH))
 ##############
 ## Training ##
 ##############
@@ -206,10 +206,10 @@ def main():
         model_dir = dir_name+"/save_models_adv_wo_Normalization_8_cifar100_v2/"
         if not os.path.exists(model_dir):
             os.makedirs(model_dir)
-        torch.save(net.state_dict(), model_dir+str(epoch)+".pt")
+        torch.save(net.state_dict(), model_dir+str(epoch+15)+".pt")
         
     
-        print("At epoch:", epoch, "loss similarity is", loss_contract.item(), ",loss TCR is:", (loss_TCR).item(), "and learning rate is:", opt.param_groups[0]['lr'])
+        print("At epoch:", epoch+15, "loss similarity is", loss_contract.item(), ",loss TCR is:", (loss_TCR).item(), "and learning rate is:", opt.param_groups[0]['lr'])
        
                 
 
